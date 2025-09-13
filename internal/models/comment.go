@@ -5,9 +5,9 @@ import "gorm.io/gorm"
 type Comment struct {
 	gorm.Model
 	Content string `gorm:"type:text;not null"`
-	Post    Post
+	Post    Post   `json:"-"`
 	PostID  uint
-	User    User
+	User    User `json:"-"`
 	UserID  uint
 }
 

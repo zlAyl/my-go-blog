@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zlAyl/my-go-blog/internal/models"
 	"github.com/zlAyl/my-go-blog/internal/repositories"
+	"github.com/zlAyl/my-go-blog/internal/response"
 )
 
 type CommentHandler struct {
@@ -17,21 +18,31 @@ func NewCommentHandler(commentRepo *repositories.CommentRepository) *CommentHand
 	return &CommentHandler{commentRepo: commentRepo}
 }
 
+// Publish 发布评论
 func (com *CommentHandler) Publish(c *gin.Context) {
 	postId, err := strconv.Atoi(c.Param("id"))
 	if err != nil || postId <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的文章ID"})
+		response.BaseResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "无效的文章ID ",
+		}.Error(c)
 		return
 	}
 
 	var publishComment models.PublishComment
 	if err := c.BindJSON(&publishComment); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误：" + err.Error()})
+		response.BaseResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "参数错误 " + err.Error(),
+		}.Error(c)
 		return
 	}
 	userId, exists := c.Get("userId")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "未授权"})
+		response.BaseResponse{
+			Code: http.StatusUnauthorized,
+			Msg:  "未授权 ",
+		}.Error(c)
 		return
 	}
 	comment := models.Comment{
@@ -40,22 +51,33 @@ func (com *CommentHandler) Publish(c *gin.Context) {
 		PostID:  uint(postId),
 	}
 	if err := com.commentRepo.PublishComment(&comment); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "发布评论失败: " + err.Error()})
+		response.BaseResponse{
+			Code: http.StatusInternalServerError,
+			Msg:  "发布评论失败: " + err.Error(),
+		}.Error(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "评论成功"})
+	response.BaseResponse{}.Success(c)
 }
 
 func (com *CommentHandler) Lists(c *gin.Context) {
 	postId, err := strconv.Atoi(c.Param("id"))
 	if err != nil || postId <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的文章ID"})
+		response.BaseResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "无效的文章ID",
+		}.Error(c)
 		return
 	}
 	comments, err := com.commentRepo.CommentLists(uint(postId))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取评论失败: " + err.Error()})
+		response.BaseResponse{
+			Code: http.StatusInternalServerError,
+			Msg:  "获取评论失败: " + err.Error(),
+		}.Error(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"comments": comments, "message": "成功"})
+	response.BaseResponse{
+		Data: comments,
+	}.Success(c)
 }

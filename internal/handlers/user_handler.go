@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/zlAyl/my-go-blog/internal/models"
 	"github.com/zlAyl/my-go-blog/internal/repositories"
+	"github.com/zlAyl/my-go-blog/internal/response"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,18 +27,27 @@ func NewUserHandler(userPro *repositories.UserRepository) *UserHandler {
 func (u *UserHandler) Register(c *gin.Context) {
 	var RegUser models.RegisterUser
 	if err := c.ShouldBindWith(&RegUser, binding.JSON); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.BaseResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "参数错误: " + err.Error(),
+		}.Error(c)
 		return
 	}
 	log.Println(RegUser)
 	StoreUser, err := u.userRepo.FindUserByUsername(RegUser.Username)
 	if StoreUser != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户已经注册"})
+		response.BaseResponse{
+			Code: http.StatusInternalServerError,
+			Msg:  "用户已经注册",
+		}.Error(c)
 		return
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(RegUser.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码加密失败"})
+		response.BaseResponse{
+			Code: http.StatusInternalServerError,
+			Msg:  "密码加密失败",
+		}.Error(c)
 		return
 	}
 	RegUser.Password = string(hashedPassword)
@@ -48,29 +58,40 @@ func (u *UserHandler) Register(c *gin.Context) {
 	user.Email = RegUser.Email
 	// 创建用户
 	if err := u.userRepo.CreateUser(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.BaseResponse{
+			Code: http.StatusInternalServerError,
+			Msg:  "创建用户失败: " + err.Error(),
+		}.Error(c)
 		return
 	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "注册成功"})
+	response.BaseResponse{}.Success(c)
 }
 
 // Login  用户登录
 func (u *UserHandler) Login(c *gin.Context) {
 	var user models.LoginUser
 	if err := c.ShouldBindWith(&user, binding.JSON); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.BaseResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "参数错误:" + err.Error(),
+		}.Error(c)
 		return
 	}
 
 	StoreUser, err := u.userRepo.FindUserByUsername(user.Username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户名或密码错误"})
+		response.BaseResponse{
+			Code: http.StatusInternalServerError,
+			Msg:  "用户名或密码错误:" + err.Error(),
+		}.Error(c)
 		return
 	}
 
 	if !u.ValidatePassword(StoreUser.Password, user.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户名或密码错误"})
+		response.BaseResponse{
+			Code: http.StatusInternalServerError,
+			Msg:  "用户名或密码错误",
+		}.Error(c)
 		return
 	}
 
@@ -82,12 +103,15 @@ func (u *UserHandler) Login(c *gin.Context) {
 	})
 	signedString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "生成token失败"})
+		response.BaseResponse{
+			Code: http.StatusInternalServerError,
+			Msg:  "生成token失败",
+		}.Error(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"token": signedString,
-	})
+	response.BaseResponse{
+		Data: map[string]string{"token": signedString},
+	}.Success(c)
 
 }
 

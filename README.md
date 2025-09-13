@@ -41,3 +41,64 @@ my-go-blog/
 ├── .env                 # 环境变量（示例）
 ├── .env.example         # 环境变量示例
 └── README.md            # 项目说明
+
+### 用户注册
+curl --location --request POST 'http://localhost:8080/user/register' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"username": "string",
+"password": "string",
+"email": "string"
+}'
+
+### 用户登录
+curl --location --request POST 'http://localhost:8080/user/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"username": "string",
+"password": "string"
+}'
+
+### 发布文章
+curl --location --request POST 'http://localhost:8080/post/publish' \
+--header 'Authorization: xxxx' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"title": "string",
+"content": "string"
+}'
+
+### 文章列表
+curl --location --request GET 'http://localhost:8080/post/list?page=1&page_size=10'
+
+### 更新文章
+curl --location --request PATCH 'http://localhost:8080/post/update/1' \
+--header 'Authorization: XXXX' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"title": "string",
+"content": "string"
+}'
+
+### 文章详情
+curl --location --request GET 'http://localhost:8080/post/detail/1'
+
+### 删除文章
+curl --location --request DELETE 'http://localhost:8080/post/del/1' \
+--header 'Authorization: xxxx' \
+--header 'Content-Type: application/json' \
+--data-raw '{}'
+
+### 发布评论
+curl --location --request POST 'http://localhost:8080/comment/publish/1' \
+--header 'Authorization: XXXXX' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"content": "string"
+}'
+
+### 评论列表
+curl --location --request GET 'http://localhost:8080/comment/list/1' \
+--header 'Authorization: XXXX' \
+--header 'Content-Type: application/json' \
+--data-raw '{}'
