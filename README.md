@@ -12,6 +12,7 @@ go get -u github.com/golang-jwt/jwt/v5
 
 # 项目目录
 
+```
 my-go-blog/
 ├── cmd/                 # 应用程序入口
 │   └── server/          # 主服务器入口
@@ -42,6 +43,7 @@ my-go-blog/
 ├── .env.example         # 环境变量示例
 └── README.md            # 项目说明
 
+```
 ### 用户注册
 curl --location --request POST 'http://localhost:8080/user/register' \
 --header 'Content-Type: application/json' \
